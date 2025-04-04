@@ -7,8 +7,7 @@ class AVSApp:
         self.root = root
         self.root.title("AVS - Aizliegto Vielu Saraksts")
         self.root.geometry("800x500")
-        
-        # Sample JSON data with drug-related information
+
         self.json_data = '''
         {
             "vielas": [
@@ -57,60 +56,52 @@ class AVSApp:
         '''
         
         self.create_widgets()
-        self.load_data()  # Automātiski ielādē datus startējot
+        self.load_data()
     
     def create_widgets(self):
-        # Header frame
         header_frame = ttk.Frame(self.root)
         header_frame.pack(pady=10, fill="x")
-        
+
         self.title = ttk.Label(
             header_frame, 
-            text="AIZLĪEGTO VIELU SARAKSTS (AVS)", 
+            text="AIZLIEGTO VIELU SARAKSTS (AVS)", 
             font=("Arial", 16, "bold")
         )
         self.title.pack()
-        
-        # Pamata displeja zona
+
         self.display_frame = ttk.Frame(self.root)
         self.display_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        # Izveido Treeview tabulai
+
         self.tree = ttk.Treeview(
             self.display_frame, 
             columns=("id", "nosaukums", "apraksts", "klasifikacija", "sodamiba", "bistamiba"), 
             show="headings"
         )
-        
-        # Konfigurē kolonnas
+
         self.tree.heading("id", text="ID")
         self.tree.heading("nosaukums", text="Nosaukums")
         self.tree.heading("apraksts", text="Apraksts")
         self.tree.heading("klasifikacija", text="Klasifikācija")
         self.tree.heading("sodamiba", text="Sodāmība")
         self.tree.heading("bistamiba", text="Bīstamība")
-        
-        # Iestata kolonnu platumus
+
         self.tree.column("id", width=50, anchor="center")
         self.tree.column("nosaukums", width=120)
         self.tree.column("apraksts", width=250)
         self.tree.column("klasifikacija", width=100, anchor="center")
         self.tree.column("sodamiba", width=150)
         self.tree.column("bistamiba", width=100, anchor="center")
-        
-        # Pievieno ritjoslu
+
         scrollbar = ttk.Scrollbar(
             self.display_frame, 
             orient="vertical", 
             command=self.tree.yview
         )
         self.tree.configure(yscrollcommand=scrollbar.set)
-        
-        # Izvieto elementus
+
         self.tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-        
-        # Statusa josla
+
         self.status = ttk.Label(
             self.root, 
             text="", 
@@ -118,25 +109,58 @@ class AVSApp:
             anchor="w"
         )
         self.status.pack(fill="x", padx=5, pady=5)
-        
-        # Poga datu atjaunināšanai
+
+        button_frame = ttk.Frame(self.root)
+        button_frame.pack(pady=5)
+
         refresh_btn = ttk.Button(
-            self.root,
+            button_frame,
             text="ATJAUNINĀT DATUS",
             command=self.load_data
         )
-        refresh_btn.pack(pady=5)
+        refresh_btn.pack(side="left", padx=5)
+
+        new_window_btn = ttk.Button(
+            button_frame,
+            text="PALĪDZĪBA",
+            command=self.open_help_window
+        )
+        new_window_btn.pack(side="left", padx=5)
     
+    def open_help_window(self):
+        new_window = tk.Toplevel(self.root)
+        new_window.title("Palīdzības dienesti")
+        new_window.geometry("500x300")
+
+        ttk.Label(new_window, text="Atkarību palīdzības dienesti", font=("Arial", 14, "bold")).pack(pady=10)
+
+        help_services = [
+            {"Nosaukums": "Narkotiku palīdzības dienests", "Tālrunis": "67037333"},
+            {"Nosaukums": "Anonīmie Alkoholiķi Latvijā", "Tālrunis": "25662202"},
+            {"Nosaukums": "Narkoloģiskā palīdzība Rīgā", "Tālrunis": "67506017"},
+            {"Nosaukums": "Krīzes centrs", "Tālrunis": "116123"},
+            {"Nosaukums": "Jauniešu konsultāciju centrs", "Tālrunis": "67222922"}
+        ]
+
+        tree = ttk.Treeview(new_window, columns=("Nosaukums", "Tālrunis"), show="headings")
+        tree.heading("Nosaukums", text="Nosaukums")
+        tree.heading("Tālrunis", text="Tālrunis")
+        tree.column("Nosaukums", width=300)
+        tree.column("Tālrunis", width=150)
+
+        for service in help_services:
+            tree.insert("", "end", values=(service["Nosaukums"], service["Tālrunis"]))
+
+        tree.pack(pady=10, padx=10, fill="both", expand=True)
+
     def load_data(self):
         try:
             data = json.loads(self.json_data)
             items = data.get("vielas", [])
-            
-            # Notīra esošos datus
+
             for row in self.tree.get_children():
                 self.tree.delete(row)
-            
-            # Ievieto jaunos datus
+
             for item in items:
                 self.tree.insert("", "end", values=(
                     item.get("id", ""),
@@ -146,13 +170,12 @@ class AVSApp:
                     item.get("sodamiba", ""),
                     item.get("bistamiba", "")
                 ))
-            
+
             self.status.config(text=f"Ielādētas {len(items)} aizliegtās vielas")
-            
+
         except Exception as e:
             self.status.config(text=f"Kļūda: {str(e)}", foreground="red")
 
-# Izveido un palaiž aplikāciju
 if __name__ == "__main__":
     root = tk.Tk()
     app = AVSApp(root)
