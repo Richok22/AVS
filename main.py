@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, colorchooser, messagebox
 import json
-from tkinter import colorchooser, messagebox
 
 class AVSApp:
     def __init__(self, root):
@@ -128,6 +127,14 @@ class AVSApp:
         )
         custom_color_btn.pack(side='left', padx=5)
         
+        # Palīdzības poga
+        help_btn = ttk.Button(
+            control_frame,
+            text="Palīdzība",
+            command=self.open_help_window
+        )
+        help_btn.pack(side='left', padx=5)
+        
         # Pamata displeja zona
         self.display_frame = ttk.Frame(self.main_frame)
         self.display_frame.pack(fill="both", expand=True)
@@ -219,6 +226,60 @@ class AVSApp:
             self.change_background(color[1])
             self.bg_var.set("Pielāgots")
     
+    def open_help_window(self):
+        """Atver palīdzības logu ar kontaktu informāciju"""
+        help_window = tk.Toplevel(self.root)
+        help_window.title("Palīdzības dienesti")
+        help_window.geometry("600x400")
+        help_window.resizable(False, False)
+        
+        # Pielāgo stilus palīdzības logam
+        bg_color = self.style.lookup('TFrame', 'background')
+        help_window.configure(bg=bg_color)
+        
+        # Galvene
+        ttk.Label(
+            help_window,
+            text="Atkarību palīdzības dienesti",
+            style='Header.TLabel'
+        ).pack(pady=10)
+        
+        # Palīdzības dienesti
+        help_services = [
+            {"Nosaukums": "Narkotiku palīdzības dienests", "Tālrunis": "67037333"},
+            {"Nosaukums": "Anonīmie Alkoholiķi Latvijā", "Tālrunis": "25662202"},
+            {"Nosaukums": "Narkoloģiskā palīdzība Rīgā", "Tālrunis": "67506017"},
+            {"Nosaukums": "Krīzes centrs", "Tālrunis": "116123"},
+            {"Nosaukums": "Jauniešu konsultāciju centrs", "Tālrunis": "67222922"}
+        ]
+        
+        # Izveido Treeview palīdzības dienestiem
+        help_tree = ttk.Treeview(
+            help_window,
+            columns=("Nosaukums", "Tālrunis"),
+            show="headings",
+            style='Treeview',
+            height=5
+        )
+        help_tree.heading("Nosaukums", text="Dienesta nosaukums")
+        help_tree.heading("Tālrunis", text="Kontakttālrunis")
+        help_tree.column("Nosaukums", width=350)
+        help_tree.column("Tālrunis", width=150, anchor="center")
+        
+        for service in help_services:
+            help_tree.insert("", "end", values=(service["Nosaukums"], service["Tālrunis"]))
+        
+        help_tree.pack(pady=10, padx=20, fill="both", expand=True)
+        
+        # Paziņojuma teksts
+        ttk.Label(
+            help_window,
+            text="Ja jūs vai kāds no jūsu tuviniekiem cīnās ar atkarību,\n"
+                 "lūdzu, nevilcinieties sazināties ar speciālistiem.",
+            style='TLabel',
+            justify="center"
+        ).pack(pady=10)
+    
     def load_data(self):
         try:
             data = json.loads(self.json_data)
@@ -242,10 +303,9 @@ class AVSApp:
             self.status.config(text=f"Ielādētas {len(items)} aizliegtās vielas")
             
         except Exception as e:
-            self.status.config(text=f"Kļūda: {str(e)}")
+            self.status.config(text=f"Kļūda: {str(e)}", foreground="red")
             messagebox.showerror("Kļūda", f"Datu ielādes kļūda:\n{str(e)}")
 
-# Izveido un palaiž aplikāciju
 if __name__ == "__main__":
     root = tk.Tk()
     app = AVSApp(root)
